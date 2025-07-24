@@ -1,0 +1,49 @@
+{
+    // ENABLE HELP:
+    "files.exclude": {
+        "**/__pycache__": true
+    },
+    "workbench.iconTheme": "vs-seti",
+    "editor.accessibilitySupport": "off",
+    "vsicons.dontShowNewVersionMessage": true,
+    "cursor.chat.showSuggestedFiles": true,
+    "explorer.confirmDelete": false,
+    "cursor.cpp.enablePartialAccepts": true,
+    "files.autoSave": "onFocusChange",
+    "cursor.aipreview.enabled": true,
+    "editor.inlineSuggest.showToolbar": "always",
+    "editor.suggest.preview": true,
+    "editor.suggest.shareSuggestSelections": true,
+    "editor.suggest.showStatusBar": true,
+    "chat.editor.fontSize": 14,
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "editor.wordWrap": "on",
+    "editor.fontSize": 16,
+    "screencastMode.fontSize": 60,
+    "scm.inputFontSize": 16,
+    "terminal.integrated.fontSize": 12,
+    "window.zoomLevel": 0,
+    "python.createEnvironment.trigger": "off",
+    "jupyter.enableExtendedPythonKernelCompletions": true,
+    "autoDocstring.includeName": true,
+    "autoDocstring.startOnNewLine": true,
+    "jupyter.interactiveWindow.creationMode": "perFile",
+    "jupyter.askForKernelRestart": false,
+    "cursor.composer.shouldChimeAfterChatFinishes": true,
+    "cursor.windowSwitcher.sidebarHoverCollapsed": true,
+    "editor.parameterHints.enabled": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.acceptSuggestionOnEnter": "on",
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.diagnosticMode": "workspace",
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": true,
+        "strings": true
+    }
+}
+
+

@@ -4,26 +4,53 @@ developer: |
   
   You should classify the user's intention into one of three types:
   
-  1. InfoIntention: When the user wants information about a specific product by name
-     Examples: "Tell me about iPhone 15", "What's the price of Samsung Galaxy?", "Show me details of Nike Air Max"
+  1. InfoIntention: When the user wants information about one or more products by name
+     Examples: "Tell me about iPhone 15", "What's the price of Samsung Galaxy?", "Show me details of blue yeti mic", "Give me info on razer blackwidow and logitech tkl"
      
-     IMPORTANT: If the user provides an incomplete product name, you should:
-     - Complete the product name based on the available products list
-     - Set the completed_product_name field to the full, correct product name
-     - Keep the original product_name as what the user said
+     IMPORTANT: 
+     - Extract all product names mentioned in the user's message into the product_names list
+     - ALWAYS complete incomplete product names by finding the best match in the available products list
+     - Use fuzzy matching: "logitech tkl" should match "Logitech G915 TKL"
+     - Use brand matching: "razer blackwidow" should match "Razer BlackWidow V3 Pro"
+     - Use partial name matching: "blue yeti" should match "Blue Yeti X"
+     - Set completed_product_names to the FULL, EXACT product names from the available products list
+     - If no match is found, keep the original name in completed_product_names
+     - For single product requests, still use a list with one item
      
      Available Products:
      {{ available_products | join(', ') }}
   
-  2. ComboIntention: When the user wants to buy a combo of products by tag or brand
-     Examples: "I want to buy Apple products", "Show me all Samsung items", "Give me Nike products", "Give me a budget combo"
+  2. ComboIntention: When the user wants to buy a combo of products by tag, brand, or product types with price filtering
+     Examples: 
+     - "I want to buy Apple products" (tag: "Apple")
+     - "Show me all Samsung items" (brand: "Samsung")
+     - "Give me the cheapest combo of razer headset, keyboard and mouse" (brand: "Razer", product_types: ["Headset", "Keyboard", "Mouse"], price_filter: "cheapest")
+     - "Give me a budget combo" (price_filter: "budget")
+     - "Show me premium gaming gear" (tag: "Gaming", price_filter: "premium")
+     - "I want a combo under $500" (max_price: 500)
+     - "I want to buy the cheapest razer combo available, combo is headset, mouse, keyboard" (brand: "Razer", product_types: ["Headset", "Mouse", "Keyboard"], price_filter: "cheapest")
   
   AVAILABLE TAGS:
   {{ available_tags | join(', ') }}
   
-  When determining if a user wants a combo, look for one of the available tags above.
+  AVAILABLE PRODUCT TYPES:
+  Mouse, Keyboard, Headset, Monitor, Webcam, Microphone, Mousepad, Speakers
+  
+  When determining if a user wants a combo, look for:
+  - Tags from the available tags list (like "Gaming", "Wireless", "RGB")
+  - Brand names (Logitech, Razer, Corsair, SteelSeries, HyperX, ASUS, MSI, Gigabyte, Samsung, LG, Dell, HP, Blue)
+  - Product types (Mouse, Keyboard, Headset, Monitor, Webcam, Microphone, Mousepad, Speakers)
+  - Price filters: "cheapest", "most_expensive", "budget", "premium"
+  - Maximum price limits
+  
+  IMPORTANT: 
+  - If the user mentions a brand name (like "Razer", "Logitech"), set the brand field
+  - If the user mentions product types (like "headset, mouse, keyboard"), set the product_types field
+  - If the user mentions price preferences (like "cheapest", "budget"), set the price_filter field
+  - You can combine multiple filters (brand + product_types + price_filter)
+  
   Choose the most appropriate intention type based on the user's message.
-  For ComboIntention, extract the most relevant tag from the available tags list.
+  For ComboIntention, extract the relevant filters and set the appropriate fields.
 
 user: |
   {{ message }}

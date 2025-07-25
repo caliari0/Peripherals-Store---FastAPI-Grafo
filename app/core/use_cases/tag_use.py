@@ -5,10 +5,6 @@ from app.dtos import (
     RemoveTagsFromProductInput,
     ProductTagsResponse,
     ProductsByTagResponse,
-    AddFavoriteTagInput,
-    RemoveFavoriteTagInput,
-    UserFavoriteTagsResponse,
-    RecommendedProductsResponse,
     AllTagsResponse,
     CleanupResponse,
 )
@@ -72,76 +68,6 @@ class TagUseCase:
         ]
 
         return ProductsByTagResponse(tag_name=tag_name, products=product_list)
-
-    # USER FAVORITE TAG OPERATIONS
-
-    def add_favorite_tag(self, input: AddFavoriteTagInput) -> UserFavoriteTagsResponse:
-        # Validate input
-
-        if not input.tag_name or not input.tag_name.strip():
-            raise ValueError("Tag name cannot be empty")
-
-        # Call service methods directly - let exceptions bubble up
-        self.tag_service.add_favorite_tag(input.user_id, input.tag_name.strip())
-        favorite_tags = self.tag_service.get_user_favorite_tags(input.user_id)
-
-        return UserFavoriteTagsResponse(
-            user_id=input.user_id, favorite_tags=favorite_tags
-        )
-
-    def remove_favorite_tag(
-        self, input: RemoveFavoriteTagInput
-    ) -> UserFavoriteTagsResponse:
-        # Validate input
-
-        if not input.tag_name or not input.tag_name.strip():
-            raise ValueError("Tag name cannot be empty")
-
-        # Call service methods directly - let exceptions bubble up
-        success = self.tag_service.remove_favorite_tag(
-            input.user_id, input.tag_name.strip()
-        )
-        if not success:
-            raise ValueError(
-                f"Favorite tag '{input.tag_name}' not found for user {input.user_id}"
-            )
-
-        favorite_tags = self.tag_service.get_user_favorite_tags(input.user_id)
-        return UserFavoriteTagsResponse(
-            user_id=input.user_id, favorite_tags=favorite_tags
-        )
-
-    def get_user_favorite_tags(self, user_id: int) -> UserFavoriteTagsResponse:
-        # Validate input
-
-        # Call service methods directly - let exceptions bubble up
-        favorite_tags = self.tag_service.get_user_favorite_tags(user_id)
-        return UserFavoriteTagsResponse(user_id=user_id, favorite_tags=favorite_tags)
-
-    def get_recommended_products(
-        self, user_id: int, limit: int = 10
-    ) -> RecommendedProductsResponse:
-        # Validate input
-
-        if limit <= 0:
-            raise ValueError("Limit must be positive")
-        if limit > 100:
-            limit = 100  # Cap limit to prevent abuse
-
-        # Call service methods directly - let exceptions bubble up
-        products = self.tag_service.get_recommended_products(user_id, limit)
-        product_list = [
-            {
-                "id": p.id,
-                "name": p.name,
-                "product_type": p.product_type,
-                "price": p.price,
-                "stock_quantity": p.stock_quantity,
-            }
-            for p in products
-        ]
-
-        return RecommendedProductsResponse(user_id=user_id, products=product_list)
 
     # UTILITY OPERATIONS
 

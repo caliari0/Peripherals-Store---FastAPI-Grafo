@@ -3,7 +3,6 @@ from typing import Type, TypeVar
 import instructor
 from openai import AsyncOpenAI
 from pydantic import BaseModel, SecretStr
-import os
 
 from app.core.ports.llm_port import LLMPort
 
@@ -16,9 +15,10 @@ class InstructorAdapter(LLMPort):
     """
 
     def __init__(self, model: str | None = None):
-        self.model = model or "gpt-4o-mini"
-        self.base_url = "https://api.openai.com/v1"
-        self.api_key = SecretStr(os.getenv("OPENAI_API_KEY"))
+        # Use Ollama with qwen2.5:3b by default
+        self.model = model or "qwen2.5:3b"
+        self.base_url = "http://localhost:11434/v1"  # Ollama API endpoint
+        self.api_key = SecretStr("ollama")  # Ollama doesn't require a real API key
 
         openai_client = AsyncOpenAI(
             api_key=self.api_key.get_secret_value(),

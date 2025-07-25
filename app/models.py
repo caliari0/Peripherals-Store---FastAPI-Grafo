@@ -9,7 +9,6 @@ class Tag(SQLModel, table=True):
 
     # relationships
     products: list["ProductTag"] = Relationship(back_populates="tag")
-    user_favorites: list["UserFavoriteTag"] = Relationship(back_populates="tag")
 
 
 # user
@@ -20,18 +19,6 @@ class User(SQLModel, table=True):
 
     # relationships
     orders: list["Order"] = Relationship(back_populates="user")
-    favorite_tags: list["UserFavoriteTag"] = Relationship(back_populates="user")
-
-
-# user favorite tags (many-to-many relationship)
-class UserFavoriteTag(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
-    tag_id: int = Field(foreign_key="tag.id")
-
-    # relationships
-    user: "User" = Relationship(back_populates="favorite_tags")
-    tag: "Tag" = Relationship(back_populates="user_favorites")
 
 
 # order products

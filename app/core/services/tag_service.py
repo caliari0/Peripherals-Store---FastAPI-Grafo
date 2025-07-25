@@ -1,5 +1,5 @@
 from sqlmodel import Session, select
-from app.models import Tag, Product, ProductTag, User, UserFavoriteTag
+from app.models import Tag, Product, ProductTag
 
 
 class TagService:
@@ -81,76 +81,6 @@ class TagService:
         )
         return list(self.session.exec(statement))
 
-    # USER FAVORITE TAG OPERATIONS
-
-    # adds a favorite tag for a user (creates tag if it doesn't exist)
-    def add_favorite_tag(self, user_id: int, tag_name: str) -> str:
-        user = self.session.get(User, user_id)
-        if not user:
-            raise ValueError(f"User with id {user_id} not found")
-
-        tag = self._get_or_create_tag(tag_name)
-
-        # check if user already has this favorite tag
-        existing = self.session.exec(
-            select(UserFavoriteTag).where(
-                UserFavoriteTag.user_id == user_id, UserFavoriteTag.tag_id == tag.id
-            )
-        ).first()
-
-        if existing:
-            raise ValueError(f"User already has '{tag_name}' as a favorite tag")
-
-        favorite_tag = UserFavoriteTag(user_id=user_id, tag_id=tag.id)
-        self.session.add(favorite_tag)
-        self.session.commit()
-        return tag_name
-
-    # removes a favorite tag for a user
-    def remove_favorite_tag(self, user_id: int, tag_name: str) -> bool:
-        tag = self.session.exec(select(Tag).where(Tag.name == tag_name)).first()
-        if not tag:
-            return False
-
-        favorite_tag = self.session.exec(
-            select(UserFavoriteTag).where(
-                UserFavoriteTag.user_id == user_id, UserFavoriteTag.tag_id == tag.id
-            )
-        ).first()
-
-        if not favorite_tag:
-            return False
-
-        self.session.delete(favorite_tag)
-        self.session.commit()
-        return True
-
-    # gets all favorite tags for a user
-    def get_user_favorite_tags(self, user_id: int) -> list[str]:
-        # Fix: Get full Tag objects and extract names
-        statement = (
-            select(Tag).join(UserFavoriteTag).where(UserFavoriteTag.user_id == user_id)
-        )
-        tags = self.session.exec(statement).all()
-        return [tag.name for tag in tags]
-
-    # gets products recommended for a user based on their favorite tags
-    def get_recommended_products(self, user_id: int, limit: int = 10) -> list[Product]:
-        favorite_tags = self.get_user_favorite_tags(user_id)
-        if not favorite_tags:
-            return []
-
-        # get products that have any of the user's favorite tags
-        statement = (
-            select(Product)
-            .join(ProductTag)
-            .join(Tag)
-            .where(Tag.name.in_(favorite_tags))
-            .distinct()
-            .limit(limit)
-        )
-        return list(self.session.exec(statement))
-
     # UTILITY OPERATIONS
 
     # gets all tags that exist (used by products or users)
@@ -159,18 +89,14 @@ class TagService:
         tags = self.session.exec(select(Tag).order_by(Tag.name)).all()
         return [tag.name for tag in tags]
 
-    # removes unused tags (tags not used by any products or users)
+    # removes unused tags (tags not used by any products)
     def cleanup_unused_tags(self) -> int:
-        # find tags that are not used by any products or users
+        # find tags that are not used by any products
         used_tag_ids = set()
 
         # get tags used by products
         product_tag_ids = self.session.exec(select(ProductTag.tag_id)).all()
         used_tag_ids.update(product_tag_ids)
-
-        # get tags used by users
-        user_tag_ids = self.session.exec(select(UserFavoriteTag.tag_id)).all()
-        used_tag_ids.update(user_tag_ids)
 
         # delete unused tags
         unused_tags = self.session.exec(

@@ -4,10 +4,6 @@ from app.core.use_cases.tag_use import (
     AddTagsToProductInput,
     RemoveTagsFromProductInput,
     ProductTagsResponse,
-    AddFavoriteTagInput,
-    RemoveFavoriteTagInput,
-    UserFavoriteTagsResponse,
-    RecommendedProductsResponse,
     ProductsByTagResponse,
     AllTagsResponse,
     CleanupResponse,
@@ -62,53 +58,6 @@ def get_products_by_tag(
 ) -> ProductsByTagResponse:
     try:
         return tag_use_case.get_products_by_tag(tag_name)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# USER FAVORITE TAG OPERATIONS
-
-
-@router.post("/users/favorites", response_model=UserFavoriteTagsResponse)
-def add_favorite_tag(
-    input: AddFavoriteTagInput, tag_use_case: TagUseCase = Depends(get_tag_use_case)
-) -> UserFavoriteTagsResponse:
-    try:
-        return tag_use_case.add_favorite_tag(input)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.delete("/users/favorites", response_model=UserFavoriteTagsResponse)
-def remove_favorite_tag(
-    input: RemoveFavoriteTagInput, tag_use_case: TagUseCase = Depends(get_tag_use_case)
-) -> UserFavoriteTagsResponse:
-    try:
-        return tag_use_case.remove_favorite_tag(input)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/users/favorites", response_model=UserFavoriteTagsResponse)
-def get_user_favorite_tags(
-    tag_use_case: TagUseCase = Depends(get_tag_use_case),
-) -> UserFavoriteTagsResponse:
-    try:
-        return tag_use_case.get_user_favorite_tags()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/users/recommendations", response_model=RecommendedProductsResponse)
-def get_recommended_products(
-    limit: int = 10, tag_use_case: TagUseCase = Depends(get_tag_use_case)
-) -> RecommendedProductsResponse:
-    try:
-        return tag_use_case.get_recommended_products(limit)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

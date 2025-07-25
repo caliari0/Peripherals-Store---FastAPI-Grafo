@@ -130,26 +130,6 @@ class ProductsByTagResponse(BaseModel):
     products: list[dict]  # Simplified product info
 
 
-class AddFavoriteTagInput(BaseModel):
-    user_id: int
-    tag_name: str
-
-
-class RemoveFavoriteTagInput(BaseModel):
-    user_id: int
-    tag_name: str
-
-
-class UserFavoriteTagsResponse(BaseModel):
-    user_id: int
-    favorite_tags: list[str]
-
-
-class RecommendedProductsResponse(BaseModel):
-    user_id: int
-    products: list[dict]  # Simplified product info
-
-
 class AllTagsResponse(BaseModel):
     tags: list[str]
 
@@ -200,6 +180,13 @@ class ComboProductResponse(BaseModel):
     name: str
     price: float
     type: str
+    brand: str
+
+
+class ComboResponse(BaseModel):
+    products: list[ComboProductResponse]
+    total_price: float
+    debug_info: dict
 
 
 class ProductInfoResponse(BaseModel):
@@ -211,3 +198,8 @@ class ProductInfoResponse(BaseModel):
     stock_quantity: int
     min_stock_level: int
     tags: list[str]
+
+
+class ProductInfoResponseWithDebug(BaseModel):
+    products: list[ProductInfoResponse]
+    debug_info: dict

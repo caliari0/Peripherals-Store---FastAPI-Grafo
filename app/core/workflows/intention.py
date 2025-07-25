@@ -4,7 +4,11 @@ from typing import Type, TypeVar, Callable
 from pydantic import BaseModel
 from app.core.ports.formatter_port import FormatterPort
 from pathlib import Path
-from app.core.workflows.intention_models import UserIntention, InfoIntention, ComboIntention
+from app.core.workflows.intention_models import (
+    UserIntention,
+    InfoIntention,
+    ComboIntention,
+)
 from app.core.services.tag_service import TagService
 from app.database import get_db
 from sqlmodel import select
@@ -13,7 +17,7 @@ from app.models import Product
 T = TypeVar("T", bound=BaseModel)
 
 
-class IntentionWorkflow():   
+class IntentionWorkflow:
     def __init__(self, llm_adapter: LLMPort, formatter_adapter: FormatterPort):
         self.llm = llm_adapter
         self.formatter = formatter_adapter
@@ -33,11 +37,7 @@ class IntentionWorkflow():
         products = session.exec(select(Product)).all()
         return [product.name for product in products]
 
-    async def _task(self,
-        file_name: str, 
-        response_model: Type[T],
-        **kwargs: dict
-    ) -> T:
+    async def _task(self, file_name: str, response_model: Type[T], **kwargs: dict) -> T:
         """
         This task is responsible for rendering the developer and user messages,
         and sending them to the LLM.
@@ -61,10 +61,12 @@ class IntentionWorkflow():
             response_model=response_model,
         )
 
-    async def _redirect_workflow(self, source_node: Node[UserIntention], info_node: Node, combo_node: Node[list]):
+    async def _redirect_workflow(
+        self, source_node: Node[UserIntention], info_node: Node, combo_node: Node[list]
+    ):
         if source_node.output is None:
             raise ValueError("Source node output is None")
-            
+
         if isinstance(source_node.output.intention, InfoIntention):
             # Keep info node, disconnect combo node
             await source_node.disconnect(combo_node)
@@ -72,13 +74,16 @@ class IntentionWorkflow():
             # Keep combo node, disconnect info node
             await source_node.disconnect(info_node)
 
-
-
-    async def run(self, message: str, get_product_callback: Callable[[str], any], get_combo_callback) -> list[Node]: 
+    async def run(
+        self,
+        message: str,
+        get_product_callback: Callable[[str], any],
+        get_combo_callback,
+    ) -> list[Node]:
         # Get available tags and products for the LLM
         available_tags = self._get_available_tags()
         available_products = self._get_available_products()
-        
+
         # 1. build tree
         intention_node = Node[UserIntention](
             uuid="intention node",
@@ -89,33 +94,38 @@ class IntentionWorkflow():
                 message=message,
                 available_tags=available_tags,
                 available_products=available_products,
-            )
-        ) 
-        
+            ),
+        )
+
         # 2. build nodes
         info_node = Node(
             uuid="info node",
             coroutine=get_product_callback,
             kwargs=dict(
-                product_name=lambda: intention_node.output.intention.completed_product_name or intention_node.output.intention.product_name,
-            )
+                product_names=lambda: intention_node.output.intention.completed_product_names
+                or intention_node.output.intention.product_names,
+            ),
         )
-        
+
         combo_node = Node[list](
             uuid="combo node",
             coroutine=get_combo_callback,
             kwargs=dict(
                 tag=lambda: intention_node.output.intention.tag,
-            )
+                brand=lambda: intention_node.output.intention.brand,
+                product_types=lambda: intention_node.output.intention.product_types,
+                price_filter=lambda: intention_node.output.intention.price_filter,
+                max_price=lambda: intention_node.output.intention.max_price,
+            ),
         )
 
         intention_node.on_after_run = (
-            self._redirect_workflow, 
+            self._redirect_workflow,
             dict(
                 source_node=intention_node,
                 info_node=info_node,
                 combo_node=combo_node,
-            )
+            ),
         )
         # 3. connect nodes
         await intention_node.connect(info_node)
@@ -128,14 +138,6 @@ class IntentionWorkflow():
 
         # 5. run tree executor
         return await tree_executor.run()
-        
-
-
-
-
-
-
-
 
 
 # create a new node that consults the taglist
